@@ -1,751 +1,800 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>一张照片</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#16051f" />
+  <title>520 · 只给你的一场浪漫放映</title>
   <style>
-    :root {
-      color-scheme: dark;
-      font-family: "Microsoft YaHei", "Noto Sans SC", system-ui, -apple-system, sans-serif;
-      --bg: #120b10;
-      --wine: #241018;
-      --plum: #2b1722;
-      --ink: #fff8ed;
-      --muted: rgba(255, 248, 237, .70);
-      --soft: rgba(255, 248, 237, .11);
-      --line: rgba(255, 229, 203, .24);
-      --paper: #211813;
-      --accent: #f2c98d;
-      --rose: #d68ba1;
-      --shadow: rgba(10, 5, 8, .62);
-      --hold: 0%;
+    :root{
+      --accent:#ff7ab6;
+      --accent-2:#ffd1a6;
+      --ink:#fff7fb;
+      --muted:rgba(255,245,250,.72);
+      --glass:rgba(42,13,48,.42);
+      --glass-strong:rgba(255,255,255,.16);
+      --shadow:0 30px 100px rgba(0,0,0,.42);
+      --scene-progress:0%;
     }
-
-    * {
-      box-sizing: border-box;
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color:var(--ink);
+      background:#090312;
+      overflow:hidden;
     }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      overflow-x: hidden;
-      color: var(--ink);
+    button{font:inherit;color:inherit}
+    .page{
+      position:relative;
+      width:100%;height:100%;
+      isolation:isolate;
+      overflow:hidden;
+    }
+    .bg-stack{position:absolute;inset:-8%;z-index:-5;background:#090312;overflow:hidden}
+    .bg-layer{
+      position:absolute;inset:0;
+      background-size:cover;background-position:center;
+      opacity:0;
+      filter:blur(28px) saturate(1.2) brightness(.76);
+      transform:scale(1.12);
+      transition:opacity 1600ms ease;
+    }
+    .bg-layer.active{opacity:1;animation:bgMove var(--scene-ms,7600ms) ease-in-out forwards}
+    @keyframes bgMove{from{transform:scale(1.12) translate3d(-1.2%,0,0)}to{transform:scale(1.18) translate3d(1.2%,-1%,0)}}
+    .wash{
+      position:absolute;inset:0;z-index:-4;
       background:
-        linear-gradient(125deg, #0d0b0f 0%, #1d0e17 34%, #2b1720 62%, #100d11 100%);
+        radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--accent) 42%, transparent), transparent 28%),
+        radial-gradient(circle at 84% 70%, color-mix(in srgb, var(--accent-2) 34%, transparent), transparent 30%),
+        linear-gradient(115deg, rgba(8,2,18,.88), rgba(40,10,44,.46) 45%, rgba(9,3,18,.88));
+      pointer-events:none;
     }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: -32px;
-      z-index: -2;
-      background: url("./photo-original.jpg") center / cover no-repeat;
-      filter: blur(34px) saturate(.92) brightness(.46) sepia(.18);
-      opacity: .34;
-      transform: scale(1.06);
+    .vignette{position:absolute;inset:0;z-index:-3;background:radial-gradient(circle at center, transparent 38%, rgba(0,0,0,.48) 100%);pointer-events:none}
+    .noise{position:absolute;inset:0;z-index:-2;opacity:.08;mix-blend-mode:screen;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.65'/%3E%3C/svg%3E")}
+    #particles{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+    .petals{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1}
+    .petals span{
+      position:absolute;top:-8vh;left:var(--x);
+      width:var(--s);height:calc(var(--s)*1.35);
+      border-radius:60% 42% 58% 42%;
+      background:radial-gradient(circle at 38% 28%, rgba(255,255,255,.8), color-mix(in srgb, var(--accent) 72%, white) 22%, color-mix(in srgb, var(--accent) 75%, #e44b8d) 78%);
+      opacity:var(--o);
+      filter:blur(var(--b));
+      animation:fall var(--d) linear infinite;
+      animation-delay:var(--delay);
+      transform:rotate(var(--r));
     }
-
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: -1;
+    @keyframes fall{
+      0%{transform:translate3d(0,-8vh,0) rotate(0deg)}
+      42%{transform:translate3d(var(--drift),48vh,0) rotate(160deg)}
+      100%{transform:translate3d(calc(var(--drift)*-0.4),108vh,0) rotate(360deg)}
+    }
+    .intro{
+      position:absolute;inset:0;z-index:30;
+      display:grid;place-items:center;
+      padding:24px;
       background:
-        linear-gradient(90deg, rgba(13, 9, 12, .96), rgba(40, 20, 29, .55) 47%, rgba(13, 9, 12, .84)),
-        linear-gradient(180deg, rgba(16, 10, 14, .94), rgba(58, 28, 37, .24) 44%, rgba(12, 9, 11, .94)),
-        repeating-linear-gradient(90deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 16px);
-      pointer-events: none;
+        radial-gradient(circle at 52% 36%, rgba(255,122,182,.24), transparent 28%),
+        radial-gradient(circle at 30% 70%, rgba(255,209,166,.14), transparent 22%),
+        rgba(7,2,14,.78);
+      backdrop-filter:blur(18px);
+      transition:opacity 900ms ease, visibility 900ms ease;
     }
-
-    .scene {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: minmax(300px, 430px) minmax(320px, 500px);
-      gap: clamp(34px, 7vw, 94px);
-      align-items: center;
-      justify-content: center;
-      padding: clamp(28px, 6vw, 76px);
-      position: relative;
-      --photo-tilt-x: 0deg;
-      --photo-tilt-y: 0deg;
-      --photo-shift-x: 0px;
-      --photo-shift-y: 0px;
+    .intro.hidden{opacity:0;visibility:hidden;pointer-events:none}
+    .intro.hidden .intro-card{opacity:0;visibility:hidden;pointer-events:none}
+    .intro-card{
+      width:min(680px, calc(100vw - 36px));
+      border:1px solid rgba(255,255,255,.2);
+      background:linear-gradient(145deg, rgba(255,255,255,.16), rgba(255,255,255,.07));
+      box-shadow:var(--shadow);
+      border-radius:32px;
+      padding:34px;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
     }
-
-    .scene::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background:
-        linear-gradient(115deg, transparent 0 32%, rgba(255, 225, 190, .055) 47%, transparent 64%),
-        linear-gradient(180deg, rgba(255, 248, 237, .035), transparent 34%);
-      opacity: .78;
+    .intro-card:before{
+      content:"";position:absolute;inset:-2px;
+      background:radial-gradient(circle at 26% 16%, rgba(255,255,255,.32), transparent 24%), radial-gradient(circle at 82% 86%, color-mix(in srgb, var(--accent) 38%, transparent), transparent 32%);
+      pointer-events:none;
     }
-
-    .copy {
-      align-self: center;
-      display: grid;
-      gap: 20px;
-      min-width: 0;
-      max-width: 410px;
-      position: relative;
-      padding-left: clamp(18px, 2vw, 28px);
+    .intro-card>*{position:relative}
+    .eyebrow{
+      letter-spacing:.22em;text-transform:uppercase;
+      color:rgba(255,240,248,.76);
+      font-size:12px;font-weight:700;
     }
-
-    .copy::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 3px;
-      bottom: 8px;
-      width: 1px;
-      background: linear-gradient(180deg, transparent, rgba(242, 201, 141, .72), rgba(214, 139, 161, .36), transparent);
+    .intro h1{
+      margin:16px auto 14px;
+      max-width:560px;
+      font-size:clamp(34px,5vw,66px);
+      line-height:1.02;
+      letter-spacing:0;
     }
-
-    .date {
-      margin: 0;
-      color: var(--accent);
-      font-size: 13px;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      text-shadow: 0 0 20px rgba(242, 201, 141, .28);
+    .intro p{margin:0 auto 24px;max-width:540px;line-height:1.85;color:var(--muted)}
+    .primary-btn,.ghost-btn,.icon-btn{
+      border:0;cursor:pointer;user-select:none;
+      transition:transform .25s ease, border-color .25s ease, background .25s ease, opacity .25s ease;
     }
-
-    h1 {
-      margin: 0;
-      max-width: 10em;
-      font-size: clamp(38px, 5vw, 64px);
-      line-height: 1.04;
-      font-weight: 500;
-      letter-spacing: 0;
-      color: #fffaf2;
-      text-shadow:
-        0 1px 0 rgba(255, 255, 255, .08),
-        0 24px 70px rgba(0, 0, 0, .50);
+    .primary-btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;
+      min-height:52px;padding:0 22px;border-radius:999px;
+      background:linear-gradient(135deg, color-mix(in srgb, var(--accent) 96%, white), color-mix(in srgb, var(--accent-2) 82%, white));
+      color:#310814;font-weight:800;
+      box-shadow:0 16px 46px color-mix(in srgb, var(--accent) 42%, transparent);
     }
-
-    .copy p:not(.date) {
-      margin: 0;
-      color: var(--muted);
-      font-size: clamp(16px, 1.7vw, 19px);
-      line-height: 1.8;
+    .primary-btn:hover,.ghost-btn:hover,.icon-btn:hover{transform:translateY(-2px)}
+    .hint{margin-top:14px!important;font-size:13px;color:rgba(255,245,250,.56)!important}
+    .stage{
+      height:100%;display:grid;
+      grid-template-columns:minmax(340px, .88fr) minmax(320px, 1fr);
+      align-items:center;gap:min(7vw,82px);
+      padding:clamp(20px,4vw,64px);
+      position:relative;z-index:3;
     }
-
-    .controls {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 16px;
+    .copy-panel{
+      max-width:650px;
+      padding:clamp(20px,3.2vw,42px);
+      border:1px solid rgba(255,255,255,.18);
+      background:linear-gradient(135deg, rgba(255,255,255,.15), rgba(255,255,255,.06));
+      box-shadow:var(--shadow);
+      border-radius:34px;
+      backdrop-filter:blur(22px);
+      transform-origin:left center;
+      position:relative;
+      overflow:hidden;
     }
-
-    button {
-      appearance: none;
-      border: 1px solid var(--line);
-      color: var(--ink);
-      background: rgba(244, 239, 232, .08);
-      font: inherit;
-      cursor: pointer;
-      transition: border-color .25s ease, background .25s ease, transform .25s ease;
+    .copy-panel:before{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(125deg, rgba(255,255,255,.2), transparent 28%, color-mix(in srgb, var(--accent) 22%, transparent) 88%);
+      opacity:.55;pointer-events:none;
     }
-
-    button:focus-visible {
-      outline: 2px solid rgba(215, 185, 140, .72);
-      outline-offset: 4px;
+    .copy-panel>*{position:relative}
+    .chapter-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+    .chapter{
+      color:var(--muted);font-weight:800;font-size:13px;letter-spacing:.18em;text-transform:uppercase;
     }
-
-    .hold {
-      position: relative;
-      min-width: 148px;
-      height: 46px;
-      overflow: hidden;
-      border-radius: 999px;
-      padding: 0 20px;
-      font-size: 14px;
-      font-weight: 600;
-      border-color: rgba(255, 221, 184, .34);
-      color: #21130e;
-      background:
-        linear-gradient(135deg, rgba(255, 244, 220, .98), rgba(236, 193, 132, .90) 52%, rgba(214, 139, 161, .82));
-      box-shadow:
-        0 14px 36px rgba(13, 6, 9, .38),
-        inset 0 1px 0 rgba(255, 255, 255, .42);
+    .scene-count{font-variant-numeric:tabular-nums;color:rgba(255,245,250,.66);font-weight:700}
+    .copy-panel h2{
+      margin:0 0 18px;
+      font-size:clamp(36px,5.4vw,82px);
+      line-height:.98;letter-spacing:0;
+      text-wrap:balance;
     }
-
-    .hold::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      width: var(--hold);
-      background: rgba(255, 255, 255, .28);
-      transition: width .08s linear;
+    .scene-text{
+      min-height:112px;
+      margin:0 0 24px;
+      color:rgba(255,247,251,.82);
+      line-height:1.9;font-size:clamp(15px,1.55vw,19px);
     }
-
-    .hold span {
-      position: relative;
-      z-index: 1;
+    .quote-line{
+      display:flex;align-items:center;gap:14px;margin:26px 0 24px;color:rgba(255,247,251,.68);font-size:14px;line-height:1.75;
     }
-
-    .ghost {
-      height: 46px;
-      border-radius: 999px;
-      padding: 0 16px;
-      color: var(--muted);
-      font-size: 14px;
-      opacity: 0;
-      pointer-events: none;
-      background: rgba(255, 248, 237, .055);
+    .quote-line:before{content:"";width:42px;height:1px;background:linear-gradient(90deg,var(--accent),transparent)}
+    .controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+    .ghost-btn,.icon-btn{
+      min-height:44px;border-radius:999px;
+      padding:0 16px;border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.08);
+      backdrop-filter:blur(12px);
+      color:rgba(255,247,251,.86);
+      font-weight:700;
     }
-
-    .scene.is-open .ghost {
-      opacity: 1;
-      pointer-events: auto;
+    .icon-btn{width:44px;padding:0;display:grid;place-items:center}
+    .progress-shell{height:7px;width:100%;margin-top:26px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
+    .progress-bar{height:100%;width:var(--scene-progress);border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent-2));box-shadow:0 0 22px color-mix(in srgb, var(--accent) 60%, transparent)}
+    .visual-panel{position:relative;display:grid;place-items:center;min-height:80vh}
+    .halo{
+      position:absolute;width:min(62vh,54vw);aspect-ratio:1;border-radius:50%;
+      background:radial-gradient(circle, color-mix(in srgb, var(--accent) 33%, transparent), transparent 62%);
+      filter:blur(14px);opacity:.8;animation:pulse 4.6s ease-in-out infinite;
     }
-
-    button:hover {
-      border-color: rgba(242, 201, 141, .68);
-      transform: translateY(-1px);
+    @keyframes pulse{0%,100%{transform:scale(.96);opacity:.58}50%{transform:scale(1.06);opacity:.9}}
+    .photo-card{
+      position:relative;width:min(430px,42vw);aspect-ratio:3/4;
+      border-radius:34px;padding:14px;
+      background:linear-gradient(145deg, rgba(255,255,255,.32), rgba(255,255,255,.08));
+      box-shadow:0 42px 120px rgba(0,0,0,.48), 0 0 0 1px rgba(255,255,255,.16) inset;
+      transform:rotate(-2.2deg);
+      overflow:hidden;
     }
-
-    .frame-area {
-      width: 100%;
-      max-width: 420px;
-      min-width: 0;
-      display: grid;
-      justify-items: center;
-      gap: 18px;
-      position: relative;
+    .photo-card:after{
+      content:"";position:absolute;inset:14px;border-radius:24px;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.14), inset 0 -120px 95px rgba(0,0,0,.30);
+      pointer-events:none;
     }
-
-    .frame-area::before {
-      content: "";
-      position: absolute;
-      inset: 7% -15% 12%;
-      z-index: -1;
-      background:
-        linear-gradient(145deg, rgba(242, 201, 141, .18), rgba(214, 139, 161, .12) 45%, rgba(74, 50, 87, .18));
-      filter: blur(38px);
-      opacity: .72;
+    .photo-layer{
+      position:absolute;inset:14px;border-radius:24px;
+      background-size:cover;background-position:center;
+      opacity:0;transition:opacity 1300ms ease;
+      transform:scale(1.02);
     }
-
-    .memory-frame {
-      position: relative;
-      width: 100%;
-      max-width: 420px;
-      aspect-ratio: 3 / 4;
-      margin: 0;
-      overflow: hidden;
-      border: 1px solid rgba(255, 238, 216, .30);
-      border-radius: 8px;
-      background:
-        linear-gradient(145deg, rgba(255, 243, 224, .14), rgba(60, 36, 31, .24)),
-        #1b1512;
-      box-shadow:
-        0 38px 96px var(--shadow),
-        0 1px 0 rgba(255, 255, 255, .12) inset;
-      isolation: isolate;
-      transform: perspective(1100px) rotateX(var(--photo-tilt-x)) rotateY(var(--photo-tilt-y)) translate3d(var(--photo-shift-x), var(--photo-shift-y), 0);
-      transform-style: preserve-3d;
-      transition: transform .45s ease, box-shadow .7s ease, border-color .7s ease;
-      will-change: transform;
+    .photo-layer.active{opacity:1;animation:kenBurns var(--scene-ms,7600ms) ease-in-out forwards}
+    @keyframes kenBurns{from{transform:scale(1.02) translate3d(0,0,0)}to{transform:scale(1.11) translate3d(var(--pan-x,1.3%),var(--pan-y,-1.1%),0)}}
+    .stamp{
+      position:absolute;right:-20px;bottom:64px;
+      width:128px;height:128px;border-radius:50%;
+      display:grid;place-items:center;text-align:center;
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.24);
+      box-shadow:0 18px 50px rgba(0,0,0,.3);
+      backdrop-filter:blur(18px);
+      color:#fff;
+      transform:rotate(9deg);
     }
-
-    .scene.is-open .memory-frame {
-      border-color: rgba(255, 238, 216, .42);
-      box-shadow:
-        0 42px 104px rgba(8, 3, 6, .64),
-        0 0 52px rgba(242, 201, 141, .14),
-        0 1px 0 rgba(255, 255, 255, .14) inset;
-      animation: frame-breath 6.8s ease-in-out infinite;
+    .stamp strong{display:block;font-size:32px;line-height:1;color:var(--accent-2)}
+    .stamp span{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+    .soft-card{
+      position:absolute;left:-42px;top:42px;
+      width:172px;padding:16px;border-radius:22px;
+      background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);
+      backdrop-filter:blur(16px);box-shadow:0 20px 60px rgba(0,0,0,.28);
+      color:rgba(255,247,251,.86);line-height:1.65;font-size:13px;
+      transform:rotate(5deg);
     }
-
-    .memory-frame::before,
-    .memory-frame::after {
-      content: "";
-      position: absolute;
-      pointer-events: none;
+    .filmstrip{
+      position:absolute;left:50%;bottom:22px;z-index:6;
+      transform:translateX(-50%);
+      display:flex;gap:8px;padding:10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(13,4,24,.36);backdrop-filter:blur(18px);
+      box-shadow:0 18px 70px rgba(0,0,0,.32);
+      max-width:calc(100vw - 30px);overflow-x:auto;scrollbar-width:none;
     }
-
-    .memory-frame::before {
-      inset: 10px;
-      z-index: 1;
-      border-radius: 5px;
-      background:
-        linear-gradient(180deg, rgba(255, 247, 231, .09), transparent 22%, transparent 72%, rgba(22, 10, 13, .28)),
-        linear-gradient(115deg, rgba(255, 235, 204, .12), transparent 38%, rgba(214, 139, 161, .08) 72%, transparent);
-      opacity: .40;
-      transition: opacity 1.2s ease;
+    .filmstrip::-webkit-scrollbar{display:none}
+    .thumb{
+      width:48px;aspect-ratio:3/4;border:0;border-radius:12px;padding:0;
+      background-size:cover;background-position:center;cursor:pointer;
+      opacity:.56;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2);
+      transition:transform .25s ease, opacity .25s ease, box-shadow .25s ease;
+      flex:0 0 auto;
     }
-
-    .scene.is-open .memory-frame::before {
-      opacity: .48;
-      animation: memory-warmth 7.4s ease-in-out infinite;
+    .thumb.active{opacity:1;transform:translateY(-4px);box-shadow:0 0 0 2px var(--accent),0 12px 28px color-mix(in srgb, var(--accent) 28%, transparent)}
+    .topbar{
+      position:absolute;left:clamp(18px,4vw,58px);right:clamp(18px,4vw,58px);top:20px;z-index:8;
+      display:flex;align-items:center;justify-content:space-between;gap:16px;
+      pointer-events:none;
     }
-
-    .memory-frame::after {
-      inset: -22% -48%;
-      z-index: 6;
-      background: linear-gradient(112deg, transparent 34%, rgba(255, 238, 213, .22) 47%, rgba(255, 238, 213, .07) 52%, transparent 66%);
-      opacity: 0;
-      transform: translateX(-44%);
+    .brand,.timecode{
+      pointer-events:auto;
+      display:flex;align-items:center;gap:10px;
+      color:rgba(255,247,251,.78);font-size:13px;font-weight:800;letter-spacing:.08em;
+      text-transform:uppercase;
     }
-
-    .scene.is-open .memory-frame::after {
-      animation: slow-sheen 8.8s 1.4s ease-in-out infinite;
+    .brand-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 20px var(--accent)}
+    .timecode{font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:.02em}
+    .final-overlay{
+      position:absolute;inset:0;z-index:25;display:grid;place-items:center;padding:24px;
+      background:rgba(8,2,15,.56);backdrop-filter:blur(22px);
+      opacity:0;visibility:hidden;transition:opacity 800ms ease, visibility 800ms ease;
     }
-
-    .photo {
-      position: absolute;
-      inset: 10px;
-      z-index: 0;
-      width: calc(100% - 20px);
-      height: calc(100% - 20px);
-      display: block;
-      object-fit: cover;
-      object-position: 50% 50%;
-      border-radius: 5px;
-      filter: saturate(.88) contrast(.94) brightness(.7) blur(7px);
-      transform: scale(1.06);
-      transition: filter 1.8s cubic-bezier(.22, 1, .36, 1), transform 1.8s cubic-bezier(.22, 1, .36, 1);
+    .final-overlay.show{opacity:1;visibility:visible}
+    .final-card{
+      width:min(700px, calc(100vw - 34px));padding:36px;border-radius:34px;text-align:center;
+      background:linear-gradient(145deg, rgba(255,255,255,.18), rgba(255,255,255,.08));
+      border:1px solid rgba(255,255,255,.2);box-shadow:var(--shadow);
     }
-
-    .scene.is-open .photo {
-      filter: saturate(1.02) contrast(1.01) brightness(1) blur(0);
-      transform: scale(1);
-      animation: photo-drift 13s 1.1s ease-in-out infinite alternate;
+    .final-card h3{margin:0 0 12px;font-size:clamp(36px,7vw,88px);letter-spacing:0;line-height:1;color:var(--accent-2)}
+    .final-card p{margin:0 auto 24px;max-width:540px;line-height:1.9;color:rgba(255,247,251,.82)}
+    .text-enter{animation:textEnter 760ms ease both}
+    @keyframes textEnter{from{opacity:0;transform:translateY(16px);filter:blur(8px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
+    @media (max-width:900px){
+      body{overflow:auto;min-height:100%}
+      .page{width:100vw;max-width:100vw;min-height:100dvh;height:auto;overflow:hidden}
+      .stage{width:100vw;max-width:100vw;min-height:100dvh;height:auto;grid-template-columns:1fr;gap:24px;padding:84px 18px 116px;overflow:hidden}
+      .copy-panel{order:2;border-radius:28px}
+      .visual-panel{order:1;width:100%;max-width:100%;min-height:auto;overflow:visible}
+      .photo-card{width:min(300px, calc(100vw - 64px));border-radius:28px;transform:rotate(-1.2deg)}
+      .photo-layer,.photo-card:after{inset:11px;border-radius:20px}
+      .soft-card{left:-18px;top:22px;width:146px;font-size:12px}
+      .stamp{right:-12px;bottom:48px;width:98px;height:98px}.stamp strong{font-size:26px}
+      .copy-panel h2{font-size:clamp(34px,11vw,56px)}
+      .scene-text{min-height:0}.topbar{top:14px}.filmstrip{bottom:14px}
     }
-
-    .sleeve {
-      position: absolute;
-      inset: 10px;
-      z-index: 3;
-      display: grid;
-      place-items: center;
-      padding: 28px;
-      border-radius: 5px;
-      background:
-        linear-gradient(135deg, rgba(255, 237, 211, .13), rgba(255, 237, 211, .03)),
-        linear-gradient(180deg, rgba(37, 22, 23, .94), rgba(25, 16, 14, .82));
-      backdrop-filter: blur(12px);
-      transform-origin: 50% 0;
-      transition: transform 1.35s cubic-bezier(.22, 1, .36, 1), opacity 1.1s ease;
+    @media (max-width:520px){
+      .intro{position:fixed;inset:0;width:100vw;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto}
+      .intro-card{position:fixed;left:22px;right:auto;top:50%;transform:translateY(-50%);width:300px;max-width:calc(100vw - 44px);margin:0;padding:24px 18px;border-radius:24px}
+      .intro h1{max-width:100%;font-size:clamp(27px,7.6vw,33px);line-height:1.16;overflow-wrap:anywhere;word-break:break-word;text-wrap:initial}
+      .intro p{font-size:14px;line-height:1.75}
+      .eyebrow{font-size:11px;letter-spacing:.16em}
+      .controls{gap:9px}.primary-btn{width:100%;min-height:50px;padding:0 14px;font-size:14px}.ghost-btn{flex:1;min-width:110px}.icon-btn{width:44px;flex:0 0 44px}
+      .photo-card{width:min(300px, calc(100vw - 64px))}.filmstrip{border-radius:24px}.thumb{width:42px;border-radius:10px}
+      .soft-card{display:none}.stamp{width:86px;height:86px}.stamp span{font-size:10px}.stamp strong{font-size:22px}
     }
-
-    .scene.is-open .sleeve {
-      transform: translateY(-102%);
-      opacity: .08;
-    }
-
-    .sleeve-note {
-      width: 100%;
-      min-height: 70%;
-      display: grid;
-      align-content: end;
-      gap: 16px;
-      padding: 26px;
-      border: 1px solid rgba(255, 238, 216, .20);
-      border-radius: 8px;
-      background:
-        linear-gradient(180deg, rgba(255, 248, 237, .10), rgba(255, 248, 237, .035)),
-        repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 5px);
-    }
-
-    .sleeve-note strong {
-      display: block;
-      max-width: 11em;
-      font-size: clamp(24px, 3.1vw, 34px);
-      line-height: 1.28;
-      font-weight: 500;
-      letter-spacing: 0;
-    }
-
-    .sleeve-note small {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.7;
-    }
-
-    .shutter {
-      position: absolute;
-      inset: 10px;
-      z-index: 2;
-      pointer-events: none;
-      border-radius: 5px;
-      overflow: hidden;
-    }
-
-    .shutter::before,
-    .shutter::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 50.2%;
-      background: rgba(28, 16, 17, .66);
-      transition: transform 1.45s cubic-bezier(.22, 1, .36, 1);
-    }
-
-    .shutter::before {
-      left: 0;
-      border-right: 1px solid rgba(244, 239, 232, .16);
-    }
-
-    .shutter::after {
-      right: 0;
-      border-left: 1px solid rgba(244, 239, 232, .16);
-    }
-
-    .scene.is-open .shutter::before {
-      transform: translateX(-101%);
-    }
-
-    .scene.is-open .shutter::after {
-      transform: translateX(101%);
-    }
-
-    .light-pass {
-      position: absolute;
-      inset: -15% -45%;
-      z-index: 4;
-      background: linear-gradient(105deg, transparent 34%, rgba(255, 238, 213, .32) 48%, transparent 62%);
-      transform: translateX(-75%);
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .scene.is-open .light-pass {
-      animation: expose 1.8s .18s cubic-bezier(.22, 1, .36, 1) forwards;
-    }
-
-    .grain {
-      position: absolute;
-      inset: 10px;
-      z-index: 5;
-      pointer-events: none;
-      opacity: .12;
-      mix-blend-mode: soft-light;
-      background-image:
-        radial-gradient(circle at 22% 18%, rgba(255,255,255,.28) 0 1px, transparent 1px),
-        radial-gradient(circle at 76% 44%, rgba(255,255,255,.20) 0 1px, transparent 1px);
-      background-size: 8px 9px, 11px 13px;
-    }
-
-    .scene.is-open .grain {
-      animation: film-grain 1.8s steps(2, end) infinite;
-    }
-
-    .caption-line {
-      width: 100%;
-      max-width: 420px;
-      margin: 0;
-      color: rgba(255, 248, 237, .72);
-      font-size: 14px;
-      line-height: 1.75;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: opacity .85s .85s ease, transform .85s .85s ease;
-    }
-
-    .scene.is-open .caption-line {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .sound {
-      min-height: 22px;
-      color: rgba(255, 248, 237, .52);
-      font-size: 13px;
-      line-height: 1.6;
-      text-align: center;
-    }
-
-    @keyframes expose {
-      0% {
-        opacity: 0;
-        transform: translateX(-75%);
-      }
-      22% {
-        opacity: .8;
-      }
-      100% {
-        opacity: 0;
-        transform: translateX(75%);
-      }
-    }
-
-    @keyframes frame-breath {
-      0%, 100% {
-        box-shadow:
-          0 38px 96px rgba(0, 0, 0, .54),
-          0 0 38px rgba(215, 185, 140, .08);
-      }
-      50% {
-        box-shadow:
-          0 42px 106px rgba(0, 0, 0, .58),
-          0 0 58px rgba(215, 185, 140, .16);
-      }
-    }
-
-    @keyframes memory-warmth {
-      0%, 100% {
-        opacity: .42;
-      }
-      50% {
-        opacity: .58;
-      }
-    }
-
-    @keyframes slow-sheen {
-      0%, 68% {
-        opacity: 0;
-        transform: translateX(-44%);
-      }
-      78% {
-        opacity: .75;
-      }
-      100% {
-        opacity: 0;
-        transform: translateX(44%);
-      }
-    }
-
-    @keyframes photo-drift {
-      0% {
-        transform: scale(1.004) translate3d(0, 0, 0);
-      }
-      100% {
-        transform: scale(1.026) translate3d(-1.1%, -.7%, 0);
-      }
-    }
-
-    @keyframes film-grain {
-      0% {
-        background-position: 0 0, 0 0;
-      }
-      100% {
-        background-position: 7px -5px, -9px 6px;
-      }
-    }
-
-    @media (max-width: 820px) {
-      .scene {
-        grid-template-columns: 1fr;
-        gap: 24px;
-        padding: 22px;
-      }
-
-      .copy {
-        max-width: 330px;
-        justify-self: start;
-        align-self: end;
-        padding-top: 10px;
-      }
-
-      .frame-area {
-        width: 330px;
-        max-width: calc(100vw - 44px);
-        justify-self: start;
-      }
-
-      h1 {
-        max-width: 10em;
-        font-size: clamp(31px, 10vw, 46px);
-      }
-
-      .memory-frame {
-        max-width: 100%;
-      }
-
-      .caption-line {
-        max-width: 100%;
-      }
-
-      .controls {
-        flex-wrap: wrap;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        scroll-behavior: auto !important;
-        transition-duration: .01ms !important;
-      }
+    @media (prefers-reduced-motion: reduce){
+      *,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important}
     }
   </style>
 </head>
 <body>
-  <main class="scene" id="scene">
-    <section class="copy" aria-label="给她的话">
-      <p class="date">2026.05.20</p>
-      <h1>有些瞬间，<br>不用说太满。</h1>
-      <p>我只是想把这张照片，好好递给你。那天的风、天空和笑起来的样子，我都想认真保存。</p>
-      <div class="controls">
-        <button class="hold" id="openBtn" type="button" aria-label="按住打开照片">
-          <span>按住打开</span>
-        </button>
-        <button class="ghost" id="resetBtn" type="button">收起再看</button>
-      </div>
-    </section>
+  <div class="page" id="page">
+    <div class="bg-stack" aria-hidden="true">
+      <div class="bg-layer active" id="bgA"></div>
+      <div class="bg-layer" id="bgB"></div>
+    </div>
+    <div class="wash" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div class="noise" aria-hidden="true"></div>
+    <canvas id="particles" aria-hidden="true"></canvas>
+    <div class="petals" id="petals" aria-hidden="true"></div>
 
-    <section class="frame-area" aria-label="照片">
-      <figure class="memory-frame">
-        <img class="photo" src="./photo-original.jpg" alt="一起在蓝天下的合照" />
-        <div class="shutter" aria-hidden="true"></div>
-        <div class="sleeve" aria-hidden="true">
-          <div class="sleeve-note">
-            <strong>今天只想给你看这一秒。</strong>
-            <small>不是模板，也不是热闹里的情话。只是我很喜欢的一张照片。</small>
-          </div>
+    <div class="topbar">
+      <div class="brand"><span class="brand-dot"></span><span id="brandText">520 private cinema</span></div>
+      <div class="timecode" id="timecode">00:00 / 01:16</div>
+    </div>
+
+    <main class="stage" aria-live="polite">
+      <section class="copy-panel" id="copyPanel">
+        <div class="chapter-row">
+          <div class="chapter" id="chapter">Chapter 01</div>
+          <div class="scene-count" id="sceneCount">01 / 10</div>
         </div>
-        <div class="light-pass" aria-hidden="true"></div>
-        <div class="grain" aria-hidden="true"></div>
-      </figure>
-      <p class="caption-line">那天风很好，天空也干净。后来我想起这张照片，觉得喜欢一个人也可以这么简单：看见你笑，就想把这一秒留久一点。</p>
-      <div class="sound" id="soundText">音乐会在打开时轻轻进来。</div>
-    </section>
+        <h2 id="sceneTitle">把今天，从海边点亮。</h2>
+        <p class="scene-text" id="sceneText">我想把 520 做成一场慢慢展开的放映：先有光，再有风，最后是我很认真地把心意说给你听。</p>
+        <div class="quote-line" id="quoteLine">这一页不是模板，是我为你安排的一条浪漫时间线。</div>
+        <div class="controls">
+          <button class="primary-btn" id="playBtn">开启放映 · 播放音乐</button>
+          <button class="ghost-btn" id="prevBtn">上一幕</button>
+          <button class="ghost-btn" id="nextBtn">下一幕</button>
+          <button class="icon-btn" id="pauseBtn" aria-label="暂停或继续">Ⅱ</button>
+        </div>
+        <div class="progress-shell" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
+      </section>
 
-    <audio id="audio" src="./midnight-drive-korean-pop.mp3" preload="auto"></audio>
-  </main>
+      <section class="visual-panel" aria-hidden="true">
+        <div class="halo"></div>
+        <div class="photo-card" id="photoCard">
+          <div class="photo-layer active" id="photoA"></div>
+          <div class="photo-layer" id="photoB"></div>
+        </div>
+        <div class="soft-card" id="softCard">一张照片是一幕。十幕连起来，就是今天想给你的心动。</div>
+        <div class="stamp"><div><strong>520</strong><span>For You</span></div></div>
+      </section>
+    </main>
+
+    <div class="filmstrip" id="filmstrip" aria-label="场景缩略图"></div>
+
+    <div class="intro" id="intro">
+      <div class="intro-card">
+        <div class="eyebrow">520 · private love page</div>
+        <h1>一张照片，<br>一场只给你的<br>浪漫放映。</h1>
+        <p>点击后会开始播放音乐，同一张合照会被分成十个情绪场景慢慢展开。每一幕都不是炫技，而是从“记得那天”走向“认真喜欢”。</p>
+        <button class="primary-btn" id="enterBtn">打开这场 520 放映 · 播放音乐</button>
+        <p class="hint">浏览器需要你点击一次，音乐才能正常响起。</p>
+      </div>
+    </div>
+
+    <div class="final-overlay" id="finalOverlay">
+      <div class="final-card">
+        <div class="eyebrow">The final scene</div>
+        <h3>520 已点亮</h3>
+        <p id="finalText">从第一幕到最后一幕，我想表达的其实只有一句：你值得被认真偏爱，也值得被我放进每一个普通日子里。</p>
+        <button class="primary-btn" id="replayBtn">再看一遍</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    const scene = document.getElementById("scene");
-    const openBtn = document.getElementById("openBtn");
-    const resetBtn = document.getElementById("resetBtn");
-    const audio = document.getElementById("audio");
-    const soundText = document.getElementById("soundText");
-    const frame = document.querySelector(".memory-frame");
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const CONFIG = {
+      herName: "她",
+      yourName: "我",
+      brandText: "520 private cinema",
+      dateText: "2026.05.20",
+      sceneSeconds: 7.6,
+      finalText: "从第一幕到最后一幕，我想表达的其实只有一句：你值得被认真偏爱，也值得被我放进每一个普通日子里。",
+      // 使用仓库中的韩语爱情音乐。
+      musicSrc: "midnight-drive-korean-pop.mp3",
+      scenes: [
+        {
+          image: "assets/scene-01.jpg",
+          chapter: "Chapter 01 · 那天的光",
+          title: "把今天，从这张照片点亮。",
+          text: "我想把 520 做成一场慢慢展开的放映：先有光，再有风，最后是我很认真地把这张合照递给你。",
+          quote: "我希望你打开这一页时，第一眼看到的不是模板，而是我们那天真的笑。",
+          accent: "#ff7ab6", accent2: "#ffd1a6", panX: "1.2%", panY: "-1.0%"
+        },
+        {
+          image: "assets/scene-02.jpg",
+          chapter: "Chapter 02 · 写给你的话",
+          title: "有些喜欢，应该认真保存。",
+          text: "节日会过去，但照片里的风、天空和笑起来的样子会留下。所以我把想对你说的话，藏在这一页、这一束光、这一段音乐里。",
+          quote: "不是为了显得浪漫，而是因为照片里的人是你。",
+          accent: "#f6a2bd", accent2: "#ffe0bb", panX: "-1.0%", panY: "-1.4%"
+        },
+        {
+          image: "assets/scene-03.jpg",
+          chapter: "Chapter 03 · 靠近",
+          title: "靠近你的时候，世界会安静一点。",
+          text: "我喜欢那些不用很热闹的瞬间。只要你在旁边，很多普通画面都会变得特别，像这张照片里刚好吹过的风。",
+          quote: "心动不是突然发生的，是一次又一次确定。",
+          accent: "#c07cff", accent2: "#ff7cae", panX: "1.6%", panY: "-.8%"
+        },
+        {
+          image: "assets/scene-04.jpg",
+          chapter: "Chapter 04 · 仪式感",
+          title: "想把仪式感，都留给你。",
+          text: "我不想只在今天说好听的话。我更想把喜欢落实到细节里：记住你的偏好，照顾你的情绪，也认真收藏我们的每一次见面。",
+          quote: "浪漫不是铺张，是把你放在心上。",
+          accent: "#ff5f9f", accent2: "#ffbdd2", panX: "-.9%", panY: "1.2%"
+        },
+        {
+          image: "assets/scene-05.jpg",
+          chapter: "Chapter 05 · 烟火",
+          title: "你出现后，日常也会发光。",
+          text: "有些人出现以后，普通照片也会发光。你对我来说，就是那种让日子忽然变得有期待的人。",
+          quote: "我想和你一起，把很多小事过成值得纪念。",
+          accent: "#ff8b6e", accent2: "#ffd38a", panX: "1.0%", panY: "1.0%"
+        },
+        {
+          image: "assets/scene-06.jpg",
+          chapter: "Chapter 06 · 安静陪伴",
+          title: "热闹之外，也想陪你安静。",
+          text: "我希望自己不只会制造惊喜，也能在你累的时候安静地陪着你。你不用永远开心，也不用永远坚强。",
+          quote: "喜欢不是只看见闪光，也愿意接住疲惫。",
+          accent: "#9b78ff", accent2: "#ff8ebd", panX: "-.7%", panY: "-1.2%"
+        },
+        {
+          image: "assets/scene-07.jpg",
+          chapter: "Chapter 07 · 并肩",
+          title: "比起远远看你，我更想和你一起入镜。",
+          text: "一起看天空，一起走一段路，一起把很普通的风景变成共同记忆。未来如果有很多画面，我希望身边的位置是你。",
+          quote: "最好的浪漫，是一起把未来慢慢走近。",
+          accent: "#e879f9", accent2: "#ffae86", panX: "1.2%", panY: "-.6%"
+        },
+        {
+          image: "assets/scene-08.jpg",
+          chapter: "Chapter 08 · 去未来",
+          title: "想把这条路，走成我们。",
+          text: "我知道承诺不应该只停在漂亮句子里。所以我更愿意用一次次行动告诉你：我不是一时兴起，我是认真选择。",
+          quote: "从今天开始，每一个以后都慢慢兑现。",
+          accent: "#ff718d", accent2: "#ffd08a", panX: "-.8%", panY: ".8%"
+        },
+        {
+          image: "assets/scene-09.jpg",
+          chapter: "Chapter 09 · 心意",
+          title: "这一颗心，想让你看见。",
+          text: "我表达爱意的方式可能不完美，但此刻的认真是真的。愿你在这页里听见音乐，也听见我笨拙但明确的心跳。",
+          quote: "你不是被节日顺便想起的人，你是我认真想偏爱的人。",
+          accent: "#ff6aa9", accent2: "#ffd2a6", panX: "1.0%", panY: "1.0%"
+        },
+        {
+          image: "assets/scene-10.jpg",
+          chapter: "Chapter 10 · 最后一幕",
+          title: "520 快乐，今天只想把偏爱给你。",
+          text: "如果这十幕能组成一句话，那就是：我喜欢你，也珍惜你。愿今天这份小小的技术浪漫，能让这张合照被你记得更久一点。",
+          quote: "这一页结束以后，我还会在真实生活里继续喜欢你。",
+          accent: "#e879f9", accent2: "#ff6f9f", panX: "-.5%", panY: "-1.0%"
+        }
+      ]
+    };
 
-    let holdTimer = 0;
-    let holdStart = 0;
-    let isHolding = false;
-    const holdMs = 1150;
+    const els = {
+      page: document.getElementById('page'),
+      intro: document.getElementById('intro'),
+      enterBtn: document.getElementById('enterBtn'),
+      playBtn: document.getElementById('playBtn'),
+      prevBtn: document.getElementById('prevBtn'),
+      nextBtn: document.getElementById('nextBtn'),
+      pauseBtn: document.getElementById('pauseBtn'),
+      replayBtn: document.getElementById('replayBtn'),
+      finalOverlay: document.getElementById('finalOverlay'),
+      finalText: document.getElementById('finalText'),
+      chapter: document.getElementById('chapter'),
+      sceneCount: document.getElementById('sceneCount'),
+      sceneTitle: document.getElementById('sceneTitle'),
+      sceneText: document.getElementById('sceneText'),
+      quoteLine: document.getElementById('quoteLine'),
+      copyPanel: document.getElementById('copyPanel'),
+      bgA: document.getElementById('bgA'), bgB: document.getElementById('bgB'),
+      photoA: document.getElementById('photoA'), photoB: document.getElementById('photoB'),
+      photoCard: document.getElementById('photoCard'),
+      filmstrip: document.getElementById('filmstrip'),
+      progressBar: document.getElementById('progressBar'),
+      timecode: document.getElementById('timecode'),
+      brandText: document.getElementById('brandText')
+    };
 
-    function setHold(value) {
-      openBtn.style.setProperty("--hold", `${Math.max(0, Math.min(1, value)) * 100}%`);
+    const sceneMs = Math.max(4200, CONFIG.sceneSeconds * 1000);
+    document.documentElement.style.setProperty('--scene-ms', `${sceneMs}ms`);
+    els.brandText.textContent = CONFIG.brandText;
+    els.finalText.textContent = CONFIG.finalText;
+
+    let current = 0;
+    let activeLayer = 0;
+    let running = false;
+    let paused = false;
+    let sceneStart = performance.now();
+    let pauseStarted = 0;
+    let hasStarted = false;
+    let musicOn = false;
+    let audioEl = null;
+    let audioCtx = null;
+    let synthTimer = null;
+    let nextNoteTime = 0;
+    let noteStep = 0;
+
+    function preloadImages(){
+      CONFIG.scenes.forEach(scene => { const img = new Image(); img.src = scene.image; });
     }
 
-    function fadeAudio(target) {
-      const start = audio.volume;
-      const started = performance.now();
-      const duration = 900;
-      function tick(now) {
-        const p = Math.min(1, (now - started) / duration);
-        audio.volume = start + (target - start) * p;
-        if (p < 1) requestAnimationFrame(tick);
+    function setLayerImage(layer, image){
+      layer.style.backgroundImage = `url('${image}')`;
+      layer.style.animation = 'none';
+      void layer.offsetWidth;
+      layer.style.animation = '';
+    }
+
+    function setScene(index, options = {}){
+      current = (index + CONFIG.scenes.length) % CONFIG.scenes.length;
+      const scene = CONFIG.scenes[current];
+      document.documentElement.style.setProperty('--accent', scene.accent);
+      document.documentElement.style.setProperty('--accent-2', scene.accent2);
+      document.documentElement.style.setProperty('--pan-x', scene.panX || '1%');
+      document.documentElement.style.setProperty('--pan-y', scene.panY || '-1%');
+
+      const bgIn = activeLayer === 0 ? els.bgB : els.bgA;
+      const bgOut = activeLayer === 0 ? els.bgA : els.bgB;
+      const photoIn = activeLayer === 0 ? els.photoB : els.photoA;
+      const photoOut = activeLayer === 0 ? els.photoA : els.photoB;
+      setLayerImage(bgIn, scene.image);
+      setLayerImage(photoIn, scene.image);
+      bgIn.classList.add('active'); bgOut.classList.remove('active');
+      photoIn.classList.add('active'); photoOut.classList.remove('active');
+      activeLayer = activeLayer === 0 ? 1 : 0;
+
+      els.chapter.textContent = scene.chapter;
+      els.sceneCount.textContent = `${String(current + 1).padStart(2,'0')} / ${String(CONFIG.scenes.length).padStart(2,'0')}`;
+      els.sceneTitle.textContent = scene.title.replaceAll('{herName}', CONFIG.herName).replaceAll('{yourName}', CONFIG.yourName);
+      els.sceneText.textContent = scene.text.replaceAll('{herName}', CONFIG.herName).replaceAll('{yourName}', CONFIG.yourName);
+      els.quoteLine.textContent = scene.quote.replaceAll('{herName}', CONFIG.herName).replaceAll('{yourName}', CONFIG.yourName);
+      els.copyPanel.classList.remove('text-enter');
+      void els.copyPanel.offsetWidth;
+      els.copyPanel.classList.add('text-enter');
+      [...els.filmstrip.children].forEach((btn, i) => btn.classList.toggle('active', i === current));
+      sceneStart = performance.now();
+      updateTime(0);
+      if(options.hideFinal !== false) els.finalOverlay.classList.remove('show');
+    }
+
+    function buildFilmstrip(){
+      CONFIG.scenes.forEach((scene, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'thumb';
+        btn.type = 'button';
+        btn.style.backgroundImage = `url('${scene.image}')`;
+        btn.setAttribute('aria-label', `跳到第 ${i+1} 幕`);
+        btn.addEventListener('click', () => { setScene(i); running = true; paused = false; els.pauseBtn.textContent = 'Ⅱ'; });
+        els.filmstrip.appendChild(btn);
+      });
+    }
+
+    function fmt(sec){
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+    function updateTime(localProgress){
+      const total = CONFIG.scenes.length * CONFIG.sceneSeconds;
+      const elapsed = current * CONFIG.sceneSeconds + localProgress * CONFIG.sceneSeconds;
+      els.timecode.textContent = `${fmt(elapsed)} / ${fmt(total)}`;
+    }
+
+    function tick(now){
+      if(running && !paused){
+        const progress = Math.min(1, (now - sceneStart) / sceneMs);
+        document.documentElement.style.setProperty('--scene-progress', `${(progress * 100).toFixed(2)}%`);
+        updateTime(progress);
+        if(progress >= 1){
+          if(current === CONFIG.scenes.length - 1){
+            running = false;
+            els.finalOverlay.classList.add('show');
+          }else{
+            setScene(current + 1);
+          }
+        }
       }
       requestAnimationFrame(tick);
     }
 
-    async function startMusic() {
-      try {
-        audio.volume = 0;
-        if (audio.paused) {
-          audio.currentTime = 0;
-          await audio.play();
-        }
-        fadeAudio(0.42);
-        soundText.textContent = "音乐已经开始。";
-      } catch {
-        soundText.textContent = "浏览器拦截了自动播放，再按一次就好。";
-      }
-    }
-
-    function reveal() {
-      if (scene.classList.contains("is-open")) return;
-      isHolding = false;
-      cancelAnimationFrame(holdTimer);
-      setHold(1);
-      scene.classList.add("is-open");
-      openBtn.querySelector("span").textContent = "已经打开";
-      openBtn.setAttribute("aria-label", "照片已经打开");
-      openBtn.disabled = true;
+    function startExperience(){
+      hasStarted = true;
+      running = true;
+      paused = false;
+      els.intro.classList.add('hidden');
+      els.playBtn.textContent = musicOn ? '音乐播放中' : '播放音乐';
+      els.pauseBtn.textContent = 'Ⅱ';
+      sceneStart = performance.now();
       startMusic();
     }
 
-    function loopHold(now) {
-      if (!isHolding) return;
-      const progress = (now - holdStart) / holdMs;
-      setHold(progress);
-      if (progress >= 1) {
-        reveal();
-        return;
-      }
-      holdTimer = requestAnimationFrame(loopHold);
-    }
+    function nextScene(){ setScene(current + 1); running = true; paused = false; els.pauseBtn.textContent = 'Ⅱ'; }
+    function prevScene(){ setScene(current - 1); running = true; paused = false; els.pauseBtn.textContent = 'Ⅱ'; }
 
-    function beginHold(event) {
-      if (scene.classList.contains("is-open")) return;
-      isHolding = true;
-      holdStart = performance.now();
-      setHold(0);
-      openBtn.setPointerCapture?.(event.pointerId);
-      startMusic();
-      holdTimer = requestAnimationFrame(loopHold);
-    }
-
-    function cancelHold() {
-      if (!isHolding) return;
-      isHolding = false;
-      cancelAnimationFrame(holdTimer);
-      setHold(0);
-      if (!scene.classList.contains("is-open")) {
-        fadeAudio(0);
+    function togglePause(){
+      if(!hasStarted) startExperience();
+      paused = !paused;
+      if(paused){
+        pauseStarted = performance.now();
+        els.pauseBtn.textContent = '▶';
+      }else{
+        sceneStart += performance.now() - pauseStarted;
+        els.pauseBtn.textContent = 'Ⅱ';
       }
     }
 
-    openBtn.addEventListener("pointerdown", beginHold);
-    openBtn.addEventListener("pointerup", cancelHold);
-    openBtn.addEventListener("pointercancel", cancelHold);
-    openBtn.addEventListener("pointerleave", cancelHold);
-
-    if (!reduceMotion && frame) {
-      frame.addEventListener("pointermove", (event) => {
-        const rect = frame.getBoundingClientRect();
-        const x = (event.clientX - rect.left) / rect.width - 0.5;
-        const y = (event.clientY - rect.top) / rect.height - 0.5;
-        scene.style.setProperty("--photo-tilt-x", `${(-y * 2.4).toFixed(2)}deg`);
-        scene.style.setProperty("--photo-tilt-y", `${(x * 2.8).toFixed(2)}deg`);
-        scene.style.setProperty("--photo-shift-x", `${(x * 4).toFixed(2)}px`);
-        scene.style.setProperty("--photo-shift-y", `${(y * 4).toFixed(2)}px`);
-      });
-
-      frame.addEventListener("pointerleave", () => {
-        scene.style.setProperty("--photo-tilt-x", "0deg");
-        scene.style.setProperty("--photo-tilt-y", "0deg");
-        scene.style.setProperty("--photo-shift-x", "0px");
-        scene.style.setProperty("--photo-shift-y", "0px");
-      });
+    async function startMusic(){
+      if(musicOn) return;
+      musicOn = true;
+      els.playBtn.textContent = '音乐播放中';
+      if(CONFIG.musicSrc){
+        audioEl = audioEl || new Audio(CONFIG.musicSrc);
+        audioEl.loop = true;
+        audioEl.volume = .72;
+        try{ await audioEl.play(); }catch(e){ musicOn = false; els.playBtn.textContent = '播放音乐'; }
+      }else{
+        startSynthMusic();
+      }
     }
 
-    resetBtn.addEventListener("click", () => {
-      scene.classList.remove("is-open");
-      openBtn.disabled = false;
-      openBtn.querySelector("span").textContent = "按住打开";
-      openBtn.setAttribute("aria-label", "按住打开照片");
-      setHold(0);
-      fadeAudio(0);
-      soundText.textContent = "音乐会在打开时轻轻进来。";
-      setTimeout(() => {
-        if (!scene.classList.contains("is-open")) {
-          audio.pause();
-          audio.currentTime = 0;
+    function stopMusic(){
+      musicOn = false;
+      els.playBtn.textContent = '播放音乐';
+      if(audioEl){ audioEl.pause(); }
+      if(synthTimer){ clearInterval(synthTimer); synthTimer = null; }
+      if(audioCtx){
+        try{ audioCtx.suspend(); }catch(e){}
+      }
+    }
+
+    function toggleMusic(){
+      if(!hasStarted){ startExperience(); return; }
+      if(musicOn) stopMusic(); else startMusic();
+    }
+
+    function startSynthMusic(){
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+      const ctx = audioCtx;
+      nextNoteTime = ctx.currentTime + .05;
+      if(synthTimer) clearInterval(synthTimer);
+      synthTimer = setInterval(() => scheduleSynth(ctx), 42);
+    }
+
+    function scheduleSynth(ctx){
+      const lookAhead = .26;
+      while(nextNoteTime < ctx.currentTime + lookAhead){
+        const chords = [
+          [261.63,329.63,392.00,523.25], // C
+          [220.00,261.63,329.63,440.00], // Am
+          [174.61,261.63,349.23,440.00], // F
+          [196.00,246.94,392.00,493.88]  // G
+        ];
+        const chord = chords[Math.floor(noteStep / 8) % chords.length];
+        const arpIndex = [0,2,3,2,1,2,3,2][noteStep % 8];
+        playTone(chord[arpIndex], nextNoteTime, .34, .055, 'sine');
+        if(noteStep % 4 === 0){
+          playTone(chord[0] / 2, nextNoteTime, 1.15, .045, 'triangle');
+          playPad(chord, nextNoteTime, 1.8);
         }
-      }, 950);
-    });
-
-    if (new URLSearchParams(window.location.search).get("open") === "1") {
-      scene.classList.add("is-open");
-      openBtn.disabled = true;
-      openBtn.querySelector("span").textContent = "已经打开";
-      setHold(1);
-      soundText.textContent = "音乐会在正式打开时轻轻进来。";
+        if(noteStep % 16 === 12){ playTone(chord[3] * 2, nextNoteTime, .56, .026, 'sine'); }
+        nextNoteTime += .38;
+        noteStep++;
+      }
     }
+
+    function envGain(ctx, time, dur, peak){
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, time);
+      gain.gain.exponentialRampToValueAtTime(peak, time + .035);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, peak * .32), time + Math.max(.08, dur * .62));
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+      return gain;
+    }
+
+    function playTone(freq, time, dur, vol, type){
+      if(!audioCtx || !musicOn) return;
+      const ctx = audioCtx;
+      const osc = ctx.createOscillator();
+      const gain = envGain(ctx, time, dur, vol);
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass'; filter.frequency.setValueAtTime(1600, time);
+      osc.type = type; osc.frequency.setValueAtTime(freq, time);
+      osc.connect(gain); gain.connect(filter); filter.connect(ctx.destination);
+      osc.start(time); osc.stop(time + dur + .04);
+    }
+
+    function playPad(chord, time, dur){
+      chord.slice(1).forEach((freq, i) => {
+        const delay = i * .018;
+        playTone(freq, time + delay, dur, .018, 'sine');
+      });
+    }
+
+    function makePetals(){
+      const wrap = document.getElementById('petals');
+      for(let i=0;i<34;i++){
+        const s = document.createElement('span');
+        s.style.setProperty('--x', `${Math.random()*100}%`);
+        s.style.setProperty('--s', `${8 + Math.random()*16}px`);
+        s.style.setProperty('--o', `${0.22 + Math.random()*0.42}`);
+        s.style.setProperty('--b', `${Math.random()*1.4}px`);
+        s.style.setProperty('--d', `${9 + Math.random()*12}s`);
+        s.style.setProperty('--delay', `${-Math.random()*18}s`);
+        s.style.setProperty('--drift', `${(Math.random() > .5 ? 1 : -1) * (40 + Math.random()*160)}px`);
+        s.style.setProperty('--r', `${Math.random()*360}deg`);
+        wrap.appendChild(s);
+      }
+    }
+
+    function particleCanvas(){
+      const canvas = document.getElementById('particles');
+      const ctx = canvas.getContext('2d');
+      const particles = [];
+      let w,h,dpr;
+      function resize(){
+        dpr = Math.min(2, window.devicePixelRatio || 1);
+        w = canvas.clientWidth; h = canvas.clientHeight;
+        canvas.width = w * dpr; canvas.height = h * dpr;
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+      function reset(p){
+        p.x = Math.random()*w; p.y = Math.random()*h;
+        p.vx = (Math.random()-.5)*.28; p.vy = -.12 - Math.random()*.36;
+        p.r = 1.2 + Math.random()*3.8; p.a = .22 + Math.random()*.5;
+        p.kind = Math.random()>.78 ? 'heart' : 'dot';
+        p.spin = Math.random()*Math.PI;
+      }
+      function heart(x,y,s){
+        ctx.save(); ctx.translate(x,y); ctx.scale(s,s); ctx.beginPath();
+        ctx.moveTo(0,2.8);
+        ctx.bezierCurveTo(-7,-3,-4,-9,0,-5);
+        ctx.bezierCurveTo(4,-9,7,-3,0,2.8);
+        ctx.closePath(); ctx.fill(); ctx.restore();
+      }
+      for(let i=0;i<92;i++){const p={};particles.push(p);}
+      window.addEventListener('resize', resize);
+      resize(); particles.forEach(reset);
+      function draw(){
+        ctx.clearRect(0,0,w,h);
+        const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff7ab6';
+        particles.forEach(p=>{
+          p.x += p.vx; p.y += p.vy; p.spin += .006;
+          if(p.y < -20 || p.x < -30 || p.x > w+30) { reset(p); p.y = h + Math.random()*40; }
+          ctx.globalAlpha = p.a;
+          ctx.fillStyle = p.kind === 'heart' ? accent : 'rgba(255,248,252,.88)';
+          if(p.kind === 'heart') heart(p.x,p.y,p.r*.58); else { ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }
+        });
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    function init(){
+      preloadImages();
+      buildFilmstrip();
+      makePetals();
+      particleCanvas();
+      // 初始两层都放第一张，避免首屏闪烁。
+      els.bgA.style.backgroundImage = `url('${CONFIG.scenes[0].image}')`;
+      els.photoA.style.backgroundImage = `url('${CONFIG.scenes[0].image}')`;
+      setScene(0, {hideFinal:false});
+      requestAnimationFrame(tick);
+      els.enterBtn.addEventListener('click', startExperience);
+      els.playBtn.addEventListener('click', toggleMusic);
+      els.nextBtn.addEventListener('click', nextScene);
+      els.prevBtn.addEventListener('click', prevScene);
+      els.pauseBtn.addEventListener('click', togglePause);
+      els.replayBtn.addEventListener('click', () => { els.finalOverlay.classList.remove('show'); setScene(0); running = true; paused = false; els.pauseBtn.textContent = 'Ⅱ'; });
+      if(location.search.includes('preview')){
+        els.intro.classList.add('hidden');
+        hasStarted = true; running = true; paused = false;
+        const forced = Number(new URLSearchParams(location.search).get('scene'));
+        if(Number.isFinite(forced)) setScene(Math.min(CONFIG.scenes.length-1, Math.max(0, forced)));
+      }
+    }
+    init();
   </script>
 </body>
 </html>
