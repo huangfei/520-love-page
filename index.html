@@ -60,6 +60,10 @@
       align-items: center;
       justify-content: center;
       padding: clamp(24px, 6vw, 72px);
+      --photo-tilt-x: 0deg;
+      --photo-tilt-y: 0deg;
+      --photo-shift-x: 0px;
+      --photo-shift-y: 0px;
     }
 
     .copy {
@@ -183,6 +187,52 @@
       background: #15130f;
       box-shadow: 0 34px 90px rgba(0, 0, 0, .48);
       isolation: isolate;
+      transform: perspective(1100px) rotateX(var(--photo-tilt-x)) rotateY(var(--photo-tilt-y)) translate3d(var(--photo-shift-x), var(--photo-shift-y), 0);
+      transform-style: preserve-3d;
+      transition: transform .45s ease, box-shadow .7s ease, border-color .7s ease;
+      will-change: transform;
+    }
+
+    .scene.is-open .memory-frame {
+      border-color: rgba(244, 239, 232, .30);
+      box-shadow:
+        0 38px 96px rgba(0, 0, 0, .54),
+        0 0 44px rgba(215, 185, 140, .10);
+      animation: frame-breath 6.8s ease-in-out infinite;
+    }
+
+    .memory-frame::before,
+    .memory-frame::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .memory-frame::before {
+      inset: 0;
+      z-index: 1;
+      background:
+        linear-gradient(180deg, rgba(255, 247, 231, .11), transparent 22%, transparent 72%, rgba(12, 10, 8, .34)),
+        radial-gradient(ellipse at 50% 8%, rgba(255, 228, 184, .16), transparent 42%);
+      opacity: .34;
+      transition: opacity 1.2s ease;
+    }
+
+    .scene.is-open .memory-frame::before {
+      opacity: .48;
+      animation: memory-warmth 7.4s ease-in-out infinite;
+    }
+
+    .memory-frame::after {
+      inset: -22% -48%;
+      z-index: 6;
+      background: linear-gradient(112deg, transparent 34%, rgba(255, 245, 222, .18) 47%, rgba(255, 245, 222, .05) 52%, transparent 66%);
+      opacity: 0;
+      transform: translateX(-44%);
+    }
+
+    .scene.is-open .memory-frame::after {
+      animation: slow-sheen 8.8s 1.4s ease-in-out infinite;
     }
 
     .photo {
@@ -201,6 +251,7 @@
     .scene.is-open .photo {
       filter: saturate(1.02) contrast(1.01) brightness(1) blur(0);
       transform: scale(1);
+      animation: photo-drift 13s 1.1s ease-in-out infinite alternate;
     }
 
     .sleeve {
@@ -307,12 +358,16 @@
       inset: 0;
       z-index: 5;
       pointer-events: none;
-      opacity: .15;
+      opacity: .12;
       mix-blend-mode: soft-light;
       background-image:
         radial-gradient(circle at 22% 18%, rgba(255,255,255,.28) 0 1px, transparent 1px),
         radial-gradient(circle at 76% 44%, rgba(255,255,255,.20) 0 1px, transparent 1px);
       background-size: 8px 9px, 11px 13px;
+    }
+
+    .scene.is-open .grain {
+      animation: film-grain 1.8s steps(2, end) infinite;
     }
 
     .caption-line {
@@ -351,6 +406,60 @@
       100% {
         opacity: 0;
         transform: translateX(75%);
+      }
+    }
+
+    @keyframes frame-breath {
+      0%, 100% {
+        box-shadow:
+          0 38px 96px rgba(0, 0, 0, .54),
+          0 0 38px rgba(215, 185, 140, .08);
+      }
+      50% {
+        box-shadow:
+          0 42px 106px rgba(0, 0, 0, .58),
+          0 0 58px rgba(215, 185, 140, .16);
+      }
+    }
+
+    @keyframes memory-warmth {
+      0%, 100% {
+        opacity: .42;
+      }
+      50% {
+        opacity: .58;
+      }
+    }
+
+    @keyframes slow-sheen {
+      0%, 68% {
+        opacity: 0;
+        transform: translateX(-44%);
+      }
+      78% {
+        opacity: .75;
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(44%);
+      }
+    }
+
+    @keyframes photo-drift {
+      0% {
+        transform: scale(1.004) translate3d(0, 0, 0);
+      }
+      100% {
+        transform: scale(1.026) translate3d(-1.1%, -.7%, 0);
+      }
+    }
+
+    @keyframes film-grain {
+      0% {
+        background-position: 0 0, 0 0;
+      }
+      100% {
+        background-position: 7px -5px, -9px 6px;
       }
     }
 
@@ -444,6 +553,8 @@
     const resetBtn = document.getElementById("resetBtn");
     const audio = document.getElementById("audio");
     const soundText = document.getElementById("soundText");
+    const frame = document.querySelector(".memory-frame");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     let holdTimer = 0;
     let holdStart = 0;
@@ -527,6 +638,25 @@
     openBtn.addEventListener("pointerup", cancelHold);
     openBtn.addEventListener("pointercancel", cancelHold);
     openBtn.addEventListener("pointerleave", cancelHold);
+
+    if (!reduceMotion && frame) {
+      frame.addEventListener("pointermove", (event) => {
+        const rect = frame.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - 0.5;
+        const y = (event.clientY - rect.top) / rect.height - 0.5;
+        scene.style.setProperty("--photo-tilt-x", `${(-y * 2.4).toFixed(2)}deg`);
+        scene.style.setProperty("--photo-tilt-y", `${(x * 2.8).toFixed(2)}deg`);
+        scene.style.setProperty("--photo-shift-x", `${(x * 4).toFixed(2)}px`);
+        scene.style.setProperty("--photo-shift-y", `${(y * 4).toFixed(2)}px`);
+      });
+
+      frame.addEventListener("pointerleave", () => {
+        scene.style.setProperty("--photo-tilt-x", "0deg");
+        scene.style.setProperty("--photo-tilt-y", "0deg");
+        scene.style.setProperty("--photo-shift-x", "0px");
+        scene.style.setProperty("--photo-shift-y", "0px");
+      });
+    }
 
     resetBtn.addEventListener("click", () => {
       scene.classList.remove("is-open");
