@@ -586,12 +586,7 @@
         document.documentElement.style.setProperty('--scene-progress', `${(progress * 100).toFixed(2)}%`);
         updateTime(progress);
         if(progress >= 1){
-          if(current === CONFIG.scenes.length - 1){
-            running = false;
-            els.finalOverlay.classList.add('show');
-          }else{
-            setScene(current + 1);
-          }
+          setScene((current + 1) % CONFIG.scenes.length);
         }
       }
       requestAnimationFrame(tick);
